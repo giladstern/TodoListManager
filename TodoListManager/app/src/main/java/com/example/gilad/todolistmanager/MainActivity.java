@@ -1,24 +1,30 @@
 package com.example.gilad.todolistmanager;
 
+import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.content.DialogInterface;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
+import android.text.style.TtsSpan;
 import android.util.Log;
+import android.util.Pair;
 import android.view.*;
 import android.view.inputmethod.EditorInfo;
 import android.widget.*;
 
-import java.util.ArrayList;
+import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
 
-    static final String MESSAGES = "messages";
+    static final String CONTENT = "content";
 
-    ArrayList<CharSequence> content;
+    ArrayList<DataEntry> content;
+
     MyAdapter adapter;
-    EditText editText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,28 +37,13 @@ public class MainActivity extends AppCompatActivity {
             content = new ArrayList<>();
         }
         else {
-            content = savedInstanceState.getCharSequenceArrayList(MESSAGES);
+            content = (ArrayList<DataEntry>) savedInstanceState.getSerializable(CONTENT);
         }
 
         adapter = new MyAdapter(content);
 
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
-        editText = (EditText) findViewById(R.id.editText);
-
-        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_SEND ||
-                        (actionId == EditorInfo.IME_NULL &&
-                                event.getAction() == KeyEvent.ACTION_DOWN))
-                {
-                    entered();
-                }
-                return true;
-            }
-        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -64,21 +55,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void entered() {
-        CharSequence text = editText.getText().toString();
 
-        if (!text.equals("")) {
-            content.add(text);
-            adapter.notifyDataSetChanged();
-        }
+        new AlertDialog.Builder(this).setView(
+                getLayoutInflater().inflate(R.layout.custom_dialog, null))
+                .setTitle("Add New Item")
+                .setPositiveButton("Done", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        EditText editText = (EditText) ((AlertDialog) dialog).findViewById(R.id.editText);
+                        DatePicker datePicker = (DatePicker) ((AlertDialog) dialog).findViewById(R.id.datePicker);
 
-        editText.getText().clear();
+                        String text = editText.getText().toString();
+                        Calendar calendar = Calendar.getInstance();
+                        calendar.set(datePicker.getYear(),
+                                datePicker.getMonth(),
+                                datePicker.getDayOfMonth()
+                        );
+
+                        content.add(new DataEntry(text, calendar));
+
+                        Collections.sort(content, new Comparator<DataEntry>() {
+                            @Override
+                            public int compare(DataEntry o1, DataEntry o2) {
+                                return o1.getDate().compareTo(o2.getDate());
+                            }
+                        });
+
+                        adapter.notifyDataSetChanged();
+
+                    }
+                }).setNegativeButton("Cancel", null).show();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        outState.putCharSequenceArrayList(MESSAGES, content);
+        outState.putSerializable(CONTENT, content);
     }
 
     @Override

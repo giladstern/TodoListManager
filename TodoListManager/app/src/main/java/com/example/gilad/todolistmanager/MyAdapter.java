@@ -4,11 +4,18 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+import org.w3c.dom.Text;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -16,36 +23,48 @@ import java.util.List;
  * Created by Gilad on 3/18/2017.
  */
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
-    List<CharSequence> data;
+
+    private static SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
+    List<DataEntry> data;
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
-        public TextView textView;
-        public ViewHolder(TextView v) {
+        public TextView task;
+        public TextView date;
+        public ViewHolder(ViewGroup v) {
             super(v);
-            textView = v;
+            task = (TextView) v.findViewById(R.id.task);
+            date = (TextView) v.findViewById(R.id.date);
         }
     }
 
-    public MyAdapter(List<CharSequence> data){
+    public MyAdapter(List<DataEntry> data){
         this.data = data;
     }
 
     @Override
     public ViewHolder onCreateViewHolder(final ViewGroup parent, int viewType) {
-        final TextView textView = (TextView) LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.my_text_view, parent, false);
+        final ViewGroup viewGroup = (ViewGroup) LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_row, parent, false);
 
-        final ViewHolder vh = new ViewHolder(textView);
+        final ViewHolder vh = new ViewHolder(viewGroup);
 
-        textView.setOnLongClickListener(new View.OnLongClickListener() {
+
+        viewGroup.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onLongClick(View v) {
+            public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                builder.setTitle(textView.getText())
+                builder.setTitle(vh.task.getText())
                 .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         removeAt(vh.getAdapterPosition());
+
+                        Collections.sort(data, new Comparator<DataEntry>() {
+                            @Override
+                            public int compare(DataEntry o1, DataEntry o2) {
+                                return o1.getDate().compareTo(o2.getDate());
+                            }
+                        });
                         notifyDataSetChanged();
                     }
                 })
@@ -55,7 +74,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
                     }
                 }).create().show();
-                return true;
             }
         });
 
@@ -64,11 +82,15 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.textView.setText(data.get(position));
-        if (position % 2 == 0){
-            holder.textView.setTextColor(Color.RED);
+        holder.date.setText(format.format(data.get(position).getDate().getTime()));
+        holder.task.setText(data.get(position).getTask());
+
+        if (data.get(position).getDate().before(Calendar.getInstance())){
+            holder.date.setTextColor(Color.RED);
+            holder.task.setTextColor(Color.RED);
         } else {
-            holder.textView.setTextColor(Color.BLUE);
+            holder.date.setTextColor(Color.GRAY);
+            holder.date.setTextColor(Color.GRAY);
         }
     }
 
@@ -80,4 +102,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     public int getItemCount() {
         return data.size();
     }
+
+
 }
