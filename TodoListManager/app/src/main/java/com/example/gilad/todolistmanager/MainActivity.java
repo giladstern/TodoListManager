@@ -1,19 +1,13 @@
 package com.example.gilad.todolistmanager;
 
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.format.DateUtils;
-import android.text.style.TtsSpan;
-import android.util.Log;
-import android.util.Pair;
 import android.view.*;
-import android.view.inputmethod.EditorInfo;
 import android.widget.*;
 
 import java.util.*;

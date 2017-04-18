@@ -1,16 +1,21 @@
 package com.example.gilad.todolistmanager;
 
+import android.Manifest;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.Uri;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Pair;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import org.w3c.dom.Text;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -45,7 +50,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     public ViewHolder onCreateViewHolder(final ViewGroup parent, int viewType) {
         final ViewGroup viewGroup = (ViewGroup) LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_row, parent, false);
-
         final ViewHolder vh = new ViewHolder(viewGroup);
 
 
@@ -53,8 +57,9 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                builder.setTitle(vh.task.getText())
-                .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                String text = vh.task.getText().toString();
+                builder.setTitle(text)
+                .setNeutralButton("Delete", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         removeAt(vh.getAdapterPosition());
@@ -68,12 +73,25 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                         notifyDataSetChanged();
                     }
                 })
-                .setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
                     }
-                }).create().show();
+                });
+
+                final String[] words = text.split(" ");
+                if (words.length >= 2 && words[0].toLowerCase().equals("call")){
+                    builder.setPositiveButton("Call", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + words[1]));
+                            parent.getContext().startActivity(intent);
+                        }
+                    });
+                }
+
+                builder.create().show();
             }
         });
 
@@ -102,6 +120,5 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     public int getItemCount() {
         return data.size();
     }
-
-
+    
 }
