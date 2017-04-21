@@ -7,34 +7,54 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.*;
 import android.widget.*;
+import com.google.firebase.database.*;
+
 
 import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
 
     static final String CONTENT = "content";
-
     ArrayList<DataEntry> content;
-
     MyAdapter adapter;
+    static final DatabaseReference database = FirebaseDatabase.getInstance().getReference();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
         final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
 
         if (savedInstanceState == null) {
             content = new ArrayList<>();
+            database.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    ArrayList<DataEntry> tmp = dataSnapshot.child("data").
+                            getValue(new GenericTypeIndicator<ArrayList<DataEntry>>(){});
+                    if (tmp != null) {
+                        content.addAll(tmp);
+                    }
+                    adapter.notifyDataSetChanged();
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.d("Error", "Failed to load,", databaseError.toException());
+                }
+            });
         }
         else {
             content = (ArrayList<DataEntry>) savedInstanceState.getSerializable(CONTENT);
         }
 
-        adapter = new MyAdapter(content);
+        adapter = new MyAdapter(content, database);
 
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -60,22 +80,15 @@ public class MainActivity extends AppCompatActivity {
                         DatePicker datePicker = (DatePicker) ((AlertDialog) dialog).findViewById(R.id.datePicker);
 
                         String text = editText.getText().toString();
-                        Calendar calendar = Calendar.getInstance();
-                        calendar.set(datePicker.getYear(),
-                                datePicker.getMonth(),
-                                datePicker.getDayOfMonth()
-                        );
 
-                        content.add(new DataEntry(text, calendar));
+                        content.add(new DataEntry(text, datePicker.getDayOfMonth(),
+                                datePicker.getMonth(), datePicker.getYear()));
 
-                        Collections.sort(content, new Comparator<DataEntry>() {
-                            @Override
-                            public int compare(DataEntry o1, DataEntry o2) {
-                                return o1.getDate().compareTo(o2.getDate());
-                            }
-                        });
+                        Collections.sort(content);
 
                         adapter.notifyDataSetChanged();
+
+                        database.child("data").setValue(content);
 
                     }
                 }).setNegativeButton("Cancel", null).show();

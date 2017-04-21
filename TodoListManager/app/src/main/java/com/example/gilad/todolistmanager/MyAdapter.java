@@ -1,21 +1,16 @@
 package com.example.gilad.todolistmanager;
 
-import android.Manifest;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import com.google.firebase.database.DatabaseReference;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -31,6 +26,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     private static SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
     List<DataEntry> data;
+    DatabaseReference database;
 
     public static class ViewHolder extends RecyclerView.ViewHolder{
         public TextView task;
@@ -42,8 +38,9 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         }
     }
 
-    public MyAdapter(List<DataEntry> data){
+    public MyAdapter(List<DataEntry> data, DatabaseReference database){
         this.data = data;
+        this.database = database;
     }
 
     @Override
@@ -64,13 +61,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                     public void onClick(DialogInterface dialog, int which) {
                         removeAt(vh.getAdapterPosition());
 
-                        Collections.sort(data, new Comparator<DataEntry>() {
-                            @Override
-                            public int compare(DataEntry o1, DataEntry o2) {
-                                return o1.getDate().compareTo(o2.getDate());
-                            }
-                        });
+                        Collections.sort(data);
                         notifyDataSetChanged();
+
+                        database.child("data").setValue(data);
                     }
                 })
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -100,15 +94,23 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.date.setText(format.format(data.get(position).getDate().getTime()));
+        holder.date.setText(data.get(position).dateString());
         holder.task.setText(data.get(position).getTask());
 
-        if (data.get(position).getDate().before(Calendar.getInstance())){
+        DataEntry d = data.get(position);
+        Calendar c = Calendar.getInstance();
+        DataEntry o = new DataEntry("",
+                c.get(Calendar.DAY_OF_MONTH),
+                c.get(Calendar.MONTH),
+                c.get(Calendar.YEAR));
+
+
+        if (o.compareTo(d) > 0){
             holder.date.setTextColor(Color.RED);
             holder.task.setTextColor(Color.RED);
         } else {
             holder.date.setTextColor(Color.GRAY);
-            holder.date.setTextColor(Color.GRAY);
+            holder.task.setTextColor(Color.GRAY);
         }
     }
 

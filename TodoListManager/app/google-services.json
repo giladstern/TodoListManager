@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "437776721961",
+    "firebase_url": "https://todolistmanager-5dd68.firebaseio.com",
+    "project_id": "todolistmanager-5dd68",
+    "storage_bucket": "todolistmanager-5dd68.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:437776721961:android:97c03456b7794dee",
+        "android_client_info": {
+          "package_name": "com.example.gilad.todolistmanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "437776721961-7djn7calm9d8ms5v0pl8eb4h7lv7rolr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDtJKO-eKQ-zudqiTofUg-_Z1qCihqgq-E"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
